@@ -33,7 +33,8 @@ public class Intake extends SubsystemBase {
         m_intake = new NAR_TalonSRX(IntakeConstants.INTAKE_MOTOR_ID);
     }
     private void configPneumatics() {
-        m_intakeSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, IntakeConstants.INTAKE_SOLENOID_FORWARD_CHANNEL_ID, IntakeConstants.INTAKE_SOLENOID_BACKWARD_CHANNEL_ID);
+        m_intakeSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, IntakeConstants.INTAKE_SOLENOID_FORWARD_CHANNEL_ID, IntakeConstants.INTAKE_SOLENOID_BACKWARD_CHANNEL_ID);
+        retractIntake();
     }
 
     public void runIntake(){

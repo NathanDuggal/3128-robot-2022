@@ -1,9 +1,11 @@
 package frc.team3128.subsystems;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
@@ -25,10 +27,10 @@ public class NAR_Drivetrain extends SubsystemBase {
 
     // Initialize the generic motors
 
-    private NAR_EMotor leftLeader = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID);
-    private NAR_EMotor rightLeader = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID);
-    private NAR_EMotor leftFollower = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID);
-    private NAR_EMotor rightFollower = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID);
+    private NAR_TalonFX leftLeader = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID);
+    private NAR_TalonFX rightLeader = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID);
+    private NAR_TalonFX leftFollower = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_LEFT_FOLLOWER_ID);
+    private NAR_TalonFX rightFollower = new NAR_TalonFX(DriveConstants.DRIVE_MOTOR_RIGHT_FOLLOWER_ID);
 
     // private NAR_EMotor leftLeader = new NAR_TalonSRX(DriveConstants.DRIVE_MOTOR_LEFT_LEADER_ID);
     // private NAR_EMotor rightLeader = new NAR_TalonSRX(DriveConstants.DRIVE_MOTOR_RIGHT_LEADER_ID);
@@ -49,16 +51,25 @@ public class NAR_Drivetrain extends SubsystemBase {
     private static AHRS gyro = new AHRS(SPI.Port.kMXP);;
 
     private static Field2d field;
+    
+    // private SlewRateLimiter filter = new SlewRateLimiter(DriveConstants.ARCADE_DRIVE_RATE_LIMIT);
 
     public NAR_Drivetrain(){
 
-        leftFollower.follow(leftLeader);
-        rightFollower.follow(rightLeader);
+        leftFollower.follow((NAR_EMotor)leftLeader);
+        rightFollower.follow((NAR_EMotor)rightLeader);
         
         leftLeader.setInverted(true);
         leftFollower.setInverted(true);
         rightLeader.setInverted(false);
         rightFollower.setInverted(false);
+
+        // TEMP FOR DRIVE PRACTICE:
+        // leftLeader.setNeutralMode(NeutralMode.Brake);
+        // rightLeader.setNeutralMode(NeutralMode.Brake);
+        // leftFollower.setNeutralMode(NeutralMode.Brake);
+        // rightFollower.setNeutralMode(NeutralMode.Brake);
+
 
         robotDrive = new DifferentialDrive(
             new MotorControllerGroup(leftLeader, leftFollower),

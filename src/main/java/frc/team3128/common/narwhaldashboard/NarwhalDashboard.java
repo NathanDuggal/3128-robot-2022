@@ -1,9 +1,11 @@
 package frc.team3128.common.narwhaldashboard;
 
+import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -15,6 +17,7 @@ import frc.team3128.common.utility.Log;
 import frc.team3128.common.hardware.limelight.*;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.team3128.ConstantsInt;
 
 public class NarwhalDashboard extends WebSocketServer {
     private static final int PORT = 5805;
@@ -35,6 +38,7 @@ public class NarwhalDashboard extends WebSocketServer {
     private static String selectedAuto = null;
     private static String selectedLimelight = null;
     private static boolean pushed = false;
+    private static volatile boolean constantsChanged = true;
 
     public NarwhalDashboard(int port) throws UnknownHostException {
         super(new InetSocketAddress(port));
@@ -90,13 +94,6 @@ public class NarwhalDashboard extends WebSocketServer {
         autoPrograms.put(name, program);
     }
 
-    /**
-     * Sends new set of initial data to NarwhalDashboard.
-     */
-    public static void pushData() {
-        pushed = false;
-    }
-
     public static void addLimelight(Limelight light) {
         limelights.put(light.hostname, light);
     }
@@ -115,6 +112,10 @@ public class NarwhalDashboard extends WebSocketServer {
         // }
 
         return autoPrograms.get(selectedAuto);
+    }
+
+    public static void setSelectedLimelight(Limelight ll){
+        selectedLimelight = ll.hostname;
     }
 
     /**
@@ -136,6 +137,7 @@ public class NarwhalDashboard extends WebSocketServer {
     }
 
     // Called once on connection with web server
+    @SuppressWarnings("unchecked")
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         Log.info("NarwhalDashboard", conn.getRemoteSocketAddress().getHostName() + " has opened a connection.");
@@ -162,6 +164,30 @@ public class NarwhalDashboard extends WebSocketServer {
                 if(selectedLimelight != null) {
                     obj.put("selected_pipeline", limelights.get(selectedLimelight).getSelectedPipeline());
                 }
+
+                JSONObject constantsObj = new JSONObject();
+                for(String category : ConstantsInt.categories.keySet()) {
+                    JSONArray catArr = new JSONArray();
+                    List<Field> fields = ConstantsInt.getConstantInfo(category);
+                    for(Field field : fields) {
+                        try {
+                        // get value from Field
+                        Object value = field.get(null);
+                        JSONObject newConstant = new JSONObject();
+                        newConstant.put("key", field.getName());
+                        newConstant.put("value", value);
+    
+                        catArr.add(newConstant);
+                        Log.info("Narwhal Dashboard", "Constant Of "+newConstant.toJSONString());
+                        }
+                        catch(IllegalAccessException e) {
+                            continue;
+                        }
+                    } 
+                    constantsObj.put(category, catArr);  
+                }
+                obj.put("constants", constantsObj);
+
                 if(!pushed) {
                     JSONArray autoProgramArr = new JSONArray();
                     for (String autoName : autoPrograms.keySet()) {
@@ -200,6 +226,7 @@ public class NarwhalDashboard extends WebSocketServer {
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         // Log.info("NarwhalDashboard", conn.getRemoteSocketAddress().getHostName() + "
         // has closed its connection.");
+        pushed = false;
     }
 
     // Called by request from web server 
@@ -273,6 +300,12 @@ public class NarwhalDashboard extends WebSocketServer {
                 else {
                     Log.info("NarwhalDashboard", "Unable to Parse Pipeline Change Request from Dashboard");
                 }
+        } else if(parts[0].equals("changeconstant")) {
+            String category = parts[1];
+            String name = parts[2];
+            String value = parts[3];
+            ConstantsInt.updateConstant(category, name, value);
+            //constantsChanged = true;
         } else {
             Log.info("NarwhalDashboard", "Message recieved: " + message);
         }

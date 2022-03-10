@@ -2,47 +2,41 @@ package frc.team3128.commands;
 
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.team3128.subsystems.Climber;
-import frc.team3128.Constants;
+import frc.team3128.Constants.ClimberConstants;
 
 public class CmdClimb extends SequentialCommandGroup{
 
     public CmdClimb(Climber m_climber){
         addCommands(
             //Climber is manually fully retracted on Mid Bar
-            
+            new CmdClimbEncoder(m_climber, -350),
+
+            new WaitCommand(1),
             //elev extend a wee bit
-            new CmdClimbEncoder(m_climber, Constants.ClimberConstants.SMALL_VERTICAL_DISTANCE),
+            new CmdClimbEncoder(m_climber, m_climber.getDesiredTicks(ClimberConstants.SMALL_VERTICAL_DISTANCE)),
            
+            new WaitCommand(1),
+
             //piston extend
-            new InstantCommand(() -> m_climber.extendArm()),
+            new InstantCommand(() -> m_climber.extendPiston()),
+            
+            new WaitCommand(0.5),
             
             //elev extend
-            new CmdClimbExtend(m_climber),
+            new CmdClimbEncoder(m_climber, ClimberConstants.CLIMB_ENC_DIAG_EXTENSION),
             
-            //piston retract
-            new InstantCommand(() -> m_climber.retractArm()),
-            
-            //elev retract
-            new CmdClimbRetract(m_climber),
+            new WaitCommand(0.5),
 
-            //repeat above commands:
-            
-            //elev extend a wee bit
-            new CmdClimbEncoder(m_climber, Constants.ClimberConstants.SMALL_VERTICAL_DISTANCE),
-           
-            //piston extend
-            new InstantCommand(() -> m_climber.extendArm()),
-            
-            //elev extend
-            new CmdClimbExtend(m_climber),
-            
             //piston retract
-            new InstantCommand(() -> m_climber.retractArm()),
+            new InstantCommand(() -> m_climber.retractPiston()),
             
-            //elev retract
-            new CmdClimbRetract(m_climber)
+            new WaitCommand(1),
 
+            //elev retract
+            // new CmdClimbEncoder(m_climber, -350)
+            new CmdClimbEncoder(m_climber, 3000) // Aaron number
         );
     }
 

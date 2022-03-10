@@ -2,7 +2,9 @@ package frc.team3128.subsystems;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.team3128.Constants.HopperConstants;
 import frc.team3128.common.hardware.motorcontroller.NAR_TalonSRX;
@@ -16,6 +18,12 @@ public class Hopper extends SubsystemBase {
     private Encoder m_encoder;
 
     private boolean isEjected;
+
+    //Photoelectric Sensors (Not Used As Of Now)
+    private DigitalInput m_sensorIn, m_sensorOut;
+    private boolean wasIn, wasOut;
+    //Sets Ball Count at Beginning of Match
+    private int ballCount = 0;
 
     public Hopper() {
         configMotors();
@@ -38,18 +46,29 @@ public class Hopper extends SubsystemBase {
     }
 
     private void configPneumatics() {
-    //     m_hopperSolenoid = new DoubleSolenoid(PneumaticsModuleType.REVPH, HopperConstants.HOPPER_SOLENOID_FORWARD_CHANNEL_ID, HopperConstants.HOPPER_SOLENOID_BACKWARD_CHANNEL_ID);
+    //     m_hopperSolenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, HopperConstants.HOPPER_SOLENOID_FORWARD_CHANNEL_ID, HopperConstants.HOPPER_SOLENOID_BACKWARD_CHANNEL_ID);
      }
 
     private void configEncoders() {
         m_encoder = new Encoder(HopperConstants.HOPPER_DIO_PIN1, HopperConstants.HOPPER_DIO_PIN2);
-        m_encoder.setDistancePerPulse(2.5*Math.PI);
+        // m_encoder.setDistancePerPulse(2.5*Math.PI);
         m_encoder.setReverseDirection(true);
     }
 
     private void configSensors() {
-        // m_bottom = new DigitalInput(HopperConstants.BOTTOM_SENSOR_ID);
-        // m_top = new DigitalInput(HopperConstants.TOP_SENSOR_ID);
+        m_sensorIn = new DigitalInput(HopperConstants.BOTTOM_SENSOR_ID);
+        m_sensorOut = new DigitalInput(HopperConstants.TOP_SENSOR_ID);
+    }
+
+    @Override
+    public void periodic() {
+        if(wasIn && !m_sensorIn.get()) ballCount++;
+        if(wasOut && !m_sensorOut.get()) ballCount--;
+
+        wasIn = m_sensorIn.get();
+        wasOut = m_sensorOut.get();
+
+        SmartDashboard.putNumber("Hopper Enc", m_encoder.getDistance());
     }
 
     // public boolean getTop() {
