@@ -19,18 +19,14 @@ public class ConstantsInt extends Constants {
     //How To Use: Redefine any constants you want to change through NarwhalDashboard in this class.
     //The Constants will be overridden and NarwhalDashboard will be able to change it
     //IMPORTANT: Omit "final" when temporarily adding constants to this class
+    
     public static class ConversionConstants extends Constants.ConversionConstants {}
     public static class DriveConstants extends Constants.DriveConstants {}
     public static class ClimberConstants extends Constants.ClimberConstants {}
     public static class ShooterConstants extends Constants.ShooterConstants {
-        public static int PLATEAU_COUNT = 5;
-        public static double RPM_THRESHOLD_PERCENT_MAX;
-        public static final double LOW_kP = 1.8e-3;
-        public static final double LOW_kI = 0;
-        public static final double LOW_kD = 5e-5;
-        public static final double HIGH_kP = 0;
-        public static final double HIGH_kI = 0;
-        public static final double HIGH_kD = 0;
+        // public static double SET_RPM = 3000;
+        // public static double SET_ANGLE = 25;
+
     }
     public static class HopperConstants extends Constants.HopperConstants {}
     public static class IntakeConstants extends Constants.IntakeConstants {}

@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 
 import frc.team3128.Constants.ShooterConstants;
+import frc.team3128.ConstantsInt;
 // import frc.team3128.Constants.ShooterConstants;
 import frc.team3128.Constants.ConversionConstants;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -17,6 +18,7 @@ import frc.team3128.common.hardware.motorcontroller.NAR_TalonFX;
 import frc.team3128.common.infrastructure.NAR_EMotor;
 import frc.team3128.common.infrastructure.NAR_PIDSubsystem;
 import frc.team3128.common.utility.Log;
+import frc.team3128.common.utility.interpolation.InterpolatingDouble;
 
 public class Shooter extends NAR_PIDSubsystem {
     
@@ -63,6 +65,7 @@ public class Shooter extends NAR_PIDSubsystem {
     private SimpleMotorFeedforward lowFF = new SimpleMotorFeedforward(ShooterConstants.LOW_kS, ShooterConstants.LOW_kV, ShooterConstants.LOW_kA);
     private SimpleMotorFeedforward highFF = new SimpleMotorFeedforward(ShooterConstants.HIGH_kS, ShooterConstants.HIGH_kV, ShooterConstants.HIGH_kA);
 
+    public double ratio = 0.0;
 
     public Shooter() {
         super(new PIDController(ShooterConstants.HIGH_kP, ShooterConstants.HIGH_kI, ShooterConstants.HIGH_kD), ShooterConstants.PLATEAU_COUNT);
@@ -130,6 +133,7 @@ public class Shooter extends NAR_PIDSubsystem {
     public void startPID(double rpm) {
         thresholdPercent = ShooterConstants.RPM_THRESHOLD_PERCENT;
         super.setSetpoint(rpm);  
+        // super.setSetpoint(ConstantsInt.ShooterConstants.SET_RPM);
         // super.resetPlateauCount();
         getController().setTolerance(ShooterConstants.RPM_THRESHOLD_PERCENT * rpm);
     }
@@ -151,7 +155,7 @@ public class Shooter extends NAR_PIDSubsystem {
      */
     public void beginShoot(double rpm) {
         // Log.info("Shooter", "beginShoot rpm");
-        startPID(rpm);
+        startPID(rpm + ratio);
     }
 
     public void stopShoot() {
@@ -226,17 +230,8 @@ public class Shooter extends NAR_PIDSubsystem {
     }
 
     public double calculateMotorVelocityFromDist(double dist) {
-
-        // dist += (13 - Robot.voltageRollingAvg) * 7;
-
-        return 0.00971 * Math.pow(dist, 3) - 0.289 * Math.pow(dist, 2) - 52.17 * dist + 5196 + 600;
-        // double rpm;
-        // if (dist < 78) {
-        //     rpm = 17.7 * dist + 2187;   
-        // } else {
-        //     rpm = -4.54 * Math.pow(dist, 2) + 917 * dist - 40328;
-        // }
-        // return rpm + 1000;
+        return ShooterConstants.shooterSpeedsMap.getInterpolated(new InterpolatingDouble(dist)).value + ratio;
+        // return -1.43648019e-3*dist*dist*dist + 4.42551199e-1*dist*dist - 3.02450570e1*dist + 3.16957933e3 - 100;
     }
 }
 
